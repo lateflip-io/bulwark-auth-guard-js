@@ -6,13 +6,16 @@ let guard = new Guard("http://localhost:8080");
 let mailhog = Mailhog({ host: "localhost", port:8025});
 let testEmail = "";
 let testPassword = "";
+let deviceId = "";
 
 beforeEach(() => {
     testEmail = "test" + Math.random() + "@lateflip.io";
     testPassword = "test1!T" + Math.random();
+    deviceId = "device" + Math.random();
 });
 
 test("create account", async () => {
+    console.log(testEmail);
     await guard.account.create(testEmail, testPassword);
     let results = await mailhog.messages();
     let mail = null;
@@ -26,3 +29,22 @@ test("create account", async () => {
     await guard.account.verify(testEmail, mail?.subject);
 });
 
+test('create authenticate and delete account', async () => {
+    console.log(testEmail);
+    await guard.account.create(testEmail, testPassword);
+    let results = await mailhog.messages();
+    let mail = null;
+
+    for(let message of results?.items){
+        if(message.to === testEmail){
+            mail = message;
+            break;
+        }
+    }
+
+    expect(mail).not.toBeNull();
+    await guard.account.verify(testEmail, mail?.subject);
+    var authenticated = await guard.authenticate.password(testEmail, testPassword);
+    await guard.authenticate.acknowledge(authenticated.accessToken,
+        authenticated.refreshToken, testEmail, deviceId);
+});

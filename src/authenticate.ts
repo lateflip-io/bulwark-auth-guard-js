@@ -1,3 +1,8 @@
+import { BulwarkError } from "./errors/bulwarkError";
+import { makePost } from "./httpRequest";
+import { Authenticated } from "./types/authenticated";
+import { JsonError } from "./types/jsonError";
+
 export class Authenticate {
     private baseUrl: string;
 
@@ -5,15 +10,33 @@ export class Authenticate {
         this.baseUrl = baseUrl;
     }
 
-    async password(email: string, password: string) {
-        const response = await fetch(this.baseUrl + '/authenticate/password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({email, password}),
+    async password(email: string, password: string) : Promise<Authenticated> {
+        
+        const response = await makePost(this.baseUrl + '/authentication/authenticate',{
+            email: email,
+            password: password
         });
-        const data = await response.json();
-        return data;
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+
+        const auth : Authenticated = await response.json();
+        return auth;
+    }
+
+    async acknowledge(accessToken : string, refreshToken : string, email : string, deviceId : string){
+        const response = await makePost(this.baseUrl + '/authentication/acknowledge',{
+            email : email,
+            deviceId : deviceId,
+            accessToken : accessToken,
+            refreshToken : refreshToken
+        });
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
     }
 }
