@@ -1,6 +1,7 @@
 import { expect, test, beforeEach } from "bun:test";
 import Guard from "../src";
 import Mailhog from 'mailhog'
+import { createAccountAuthenticate } from "./createAccount";
 
 let guard = new Guard("http://localhost:8080");
 let mailhog = Mailhog({ host: "localhost", port:8025});
@@ -15,7 +16,6 @@ beforeEach(() => {
 });
 
 test("create account", async () => {
-    console.log(testEmail);
     await guard.account.create(testEmail, testPassword);
     let results = await mailhog.messages();
     let mail = null;
@@ -29,22 +29,19 @@ test("create account", async () => {
     await guard.account.verify(testEmail, mail?.subject);
 });
 
-test('create authenticate and delete account', async () => {
-    console.log(testEmail);
-    await guard.account.create(testEmail, testPassword);
-    let results = await mailhog.messages();
-    let mail = null;
+test('create, authenticate, and delete account', async () => {
+    let authenticated = await createAccountAuthenticate(testEmail, testPassword, deviceId, guard, mailhog);
+    await guard.account.delete(testEmail, authenticated.accessToken);
+});
 
-    for(let message of results?.items){
-        if(message.to === testEmail){
-            mail = message;
-            break;
-        }
-    }
+test('change email', async () => {
+    let newEmail = "test" + Math.random() + "@lateflip.io"; 
+    let authenticated = await createAccountAuthenticate(testEmail, testPassword, deviceId, guard, mailhog);
+    await guard.account.changeEmail(testEmail, newEmail, authenticated.accessToken);
+});
 
-    expect(mail).not.toBeNull();
-    await guard.account.verify(testEmail, mail?.subject);
-    var authenticated = await guard.authenticate.password(testEmail, testPassword);
-    await guard.authenticate.acknowledge(authenticated.accessToken,
-        authenticated.refreshToken, testEmail, deviceId);
+test('change password', async () => {
+    let newPassword = "test1!T" + Math.random();
+    let authenticated = await createAccountAuthenticate(testEmail, testPassword, deviceId, guard, mailhog);
+    await guard.account.changeEmail(testEmail, newPassword, authenticated.accessToken);
 });
