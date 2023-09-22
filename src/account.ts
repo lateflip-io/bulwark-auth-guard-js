@@ -33,7 +33,20 @@ export class Account{
     }
 
     public async forgetRequest(email: string){
-        const response = await makeGet(this.baseUrl + '/accounts/verify/' + email);
+        const response = await makeGet(this.baseUrl + '/accounts/forgot/' + email);
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+    }
+
+    public async forgotPassword(email : string, newPassword: string, forgotToken: string){
+        const response = await makePut(this.baseUrl + '/accounts/forgot', {
+            email: email,
+            password: newPassword,
+            token: forgotToken
+        });
 
         if (!response.ok) {
             let error : JsonError = await response.json();

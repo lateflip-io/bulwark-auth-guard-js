@@ -43,5 +43,23 @@ test('change email', async () => {
 test('change password', async () => {
     let newPassword = "test1!T" + Math.random();
     let authenticated = await createAccountAuthenticate(testEmail, testPassword, deviceId, guard, mailhog);
-    await guard.account.changeEmail(testEmail, newPassword, authenticated.accessToken);
+    await guard.account.changePassword(testEmail, newPassword, authenticated.accessToken);
+});
+
+test('forgot password', async () => {
+    let authenticated = await createAccountAuthenticate(testEmail, testPassword, deviceId, guard, mailhog);
+    await guard.account.forgetRequest(testEmail);
+
+    let results = await mailhog.messages();
+    let mail = null;
+    for(let message of results?.items){
+        if(message.to === testEmail){
+            mail = message;
+            break;
+        }
+    }
+
+    expect(mail).not.toBeNull();
+    let newPassword = "test1!T" + Math.random();
+    await guard.account.forgotPassword(testEmail,newPassword, mail.subject);
 });

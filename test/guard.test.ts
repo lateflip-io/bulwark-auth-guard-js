@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test";
+import Guard from "../src";
+let guard = new Guard("http://localhost:8080");
 
-test("2 + 2", () => {
-    expect(2 + 2).toBe(4);
+test("Is healthy", async () => {
+    const isHealthy = await guard.isHealthy();
+    expect(isHealthy).toBeTrue();
 });

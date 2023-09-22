@@ -16,6 +16,7 @@ export async function createAccountAuthenticate(email: string, password: string,
 
     await guard.account.verify(email, mail?.subject);
     var authenticated = await guard.authenticate.password(email, password);
+    mailhog.deleteMessage(mail.ID)
     await guard.authenticate.acknowledge(authenticated.accessToken,
         authenticated.refreshToken, email, deviceId); 
         
