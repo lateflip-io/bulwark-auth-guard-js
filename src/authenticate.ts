@@ -1,5 +1,6 @@
 import { BulwarkError } from "./errors/bulwarkError";
-import { makePost } from "./httpRequest";
+import { makePost, makeGet } from "./httpRequest";
+import { AccessToken } from "./types/accessToken";
 import { Authenticated } from "./types/authenticated";
 import { JsonError } from "./types/jsonError";
 
@@ -26,6 +27,30 @@ export class Authenticate {
         return auth;
     }
 
+    async magicCode(email: string, code: string): Promise<Authenticated>{
+        const response = await makePost(this.baseUrl + '/passwordless/magic/authenticate',{
+            email : email,
+            code : code
+        });
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+
+        const auth : Authenticated = await response.json();
+        return auth;
+    }
+
+    async requestMagicLink(email: string) {
+        const response = await makeGet(this.baseUrl + '/passwordless/magic/request/' + email);
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+    }
+
     async acknowledge(accessToken : string, refreshToken : string, email : string, deviceId : string){
         const response = await makePost(this.baseUrl + '/authentication/acknowledge',{
             email : email,
@@ -38,5 +63,21 @@ export class Authenticate {
             let error : JsonError = await response.json();
             throw new BulwarkError(error.title);
         }
+    }
+
+    async validateAccessToken(email: string, accessToken: string, deviceId: string) : Promise<AccessToken>{
+        const response = await makePost(this.baseUrl + '/authentication/accesstoken/validate',{
+            email : email,
+            deviceId : deviceId,
+            accessToken : accessToken
+        });
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+
+        const accessTokenInfo = response.json();
+        return accessTokenInfo;
     }
 }

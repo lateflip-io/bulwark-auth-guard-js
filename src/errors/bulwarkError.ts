@@ -1,5 +1,5 @@
 export class BulwarkError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = "bulwarkError";
     }
