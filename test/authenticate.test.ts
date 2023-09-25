@@ -47,3 +47,11 @@ test("request magic code and authenticate", async () => {
     expect(authenticated).not.toBeNull();
 
 });
+
+test("authenticate, renew, and revoke", async() => {
+    let authenticated = await createAccountAuthenticate(testEmail, testPassword, deviceId, guard, mailhog);
+    let renewed = await guard.authenticate.renew(authenticated.refreshToken, testEmail, deviceId);
+    expect(renewed).not.toBeNull();
+    await guard.authenticate.acknowledge(renewed.accessToken,renewed.refreshToken, testEmail, deviceId);
+    await guard.authenticate.revoke(renewed.accessToken, testEmail, deviceId);
+});

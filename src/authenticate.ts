@@ -80,4 +80,33 @@ export class Authenticate {
         const accessTokenInfo = response.json();
         return accessTokenInfo;
     }
+
+    async renew(refreshToken: string, email: string, deviceId: string): Promise<Authenticated>{
+        const response = await makePost(this.baseUrl + '/authentication/renew',{
+            email : email,
+            deviceId : deviceId,
+            token : refreshToken
+        });
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+
+        let authenticated = response.json();
+        return authenticated;
+    }
+
+    async revoke(accessToken: string, email: string, deviceId: string){
+        const response = await makePost(this.baseUrl + '/authentication/revoke', {
+            email : email,
+            deviceId : deviceId,
+            token : accessToken
+        });
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+    }
 }
