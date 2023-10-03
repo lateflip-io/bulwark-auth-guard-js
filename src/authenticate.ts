@@ -1,5 +1,6 @@
 import { BulwarkError } from "./errors/bulwarkError";
 import { makePost, makeGet } from "./httpRequest";
+import { SocialProvider } from "./socialProvider";
 import { AccessToken } from "./types/accessToken";
 import { Authenticated } from "./types/authenticated";
 import { JsonError } from "./types/jsonError";
@@ -13,7 +14,7 @@ export class Authenticate {
 
     async password(email: string, password: string) : Promise<Authenticated> {
         
-        const response = await makePost(this.baseUrl + '/authentication/authenticate',{
+        const response = await makePost(`${this.baseUrl}/authentication/authenticate`,{
             email: email,
             password: password
         });
@@ -28,7 +29,7 @@ export class Authenticate {
     }
 
     async magicCode(email: string, code: string): Promise<Authenticated>{
-        const response = await makePost(this.baseUrl + '/passwordless/magic/authenticate',{
+        const response = await makePost(`${this.baseUrl}/passwordless/magic/authenticate`,{
             email : email,
             code : code
         });
@@ -42,8 +43,8 @@ export class Authenticate {
         return auth;
     }
 
-    async requestMagicLink(email: string) {
-        const response = await makeGet(this.baseUrl + '/passwordless/magic/request/' + email);
+    async requestMagicLink(email: string) : Promise<void> {
+        const response = await makeGet(`${this.baseUrl}/passwordless/magic/request/${email}`);
 
         if (!response.ok) {
             let error : JsonError = await response.json();
@@ -51,8 +52,9 @@ export class Authenticate {
         }
     }
 
-    async acknowledge(accessToken : string, refreshToken : string, email : string, deviceId : string){
-        const response = await makePost(this.baseUrl + '/authentication/acknowledge',{
+    async acknowledge(accessToken : string, refreshToken : string, email : string, 
+        deviceId : string): Promise<void>{
+        const response = await makePost(`${this.baseUrl}/authentication/acknowledge`,{
             email : email,
             deviceId : deviceId,
             accessToken : accessToken,
@@ -66,7 +68,7 @@ export class Authenticate {
     }
 
     async validateAccessToken(email: string, accessToken: string, deviceId: string) : Promise<AccessToken>{
-        const response = await makePost(this.baseUrl + '/authentication/accesstoken/validate',{
+        const response = await makePost(`${this.baseUrl}/authentication/accesstoken/validate`,{
             email : email,
             deviceId : deviceId,
             accessToken : accessToken
@@ -82,7 +84,7 @@ export class Authenticate {
     }
 
     async renew(refreshToken: string, email: string, deviceId: string): Promise<Authenticated>{
-        const response = await makePost(this.baseUrl + '/authentication/renew',{
+        const response = await makePost(`${this.baseUrl}/authentication/renew`,{
             email : email,
             deviceId : deviceId,
             token : refreshToken
@@ -97,8 +99,8 @@ export class Authenticate {
         return authenticated;
     }
 
-    async revoke(accessToken: string, email: string, deviceId: string){
-        const response = await makePost(this.baseUrl + '/authentication/revoke', {
+    async revoke(accessToken: string, email: string, deviceId: string): Promise<void>{
+        const response = await makePost(`${this.baseUrl}/authentication/revoke`, {
             email : email,
             deviceId : deviceId,
             token : accessToken
@@ -108,5 +110,21 @@ export class Authenticate {
             let error : JsonError = await response.json();
             throw new BulwarkError(error.title);
         }
+    }
+
+    async social(provider: SocialProvider, socialToken: string): Promise<Authenticated>{
+        const providerName : string = provider;
+        const response = await makePost(`${this.baseUrl}/passwordless/social/authenticate`, {
+            provider : provider,
+            socialToken : socialToken
+        });
+
+        if (!response.ok) {
+            let error : JsonError = await response.json();
+            throw new BulwarkError(error.title);
+        }
+
+        let authenticated = response.json();
+        return authenticated;
     }
 }

@@ -1,6 +1,6 @@
 export enum SocialProvider
 {
-    Google,
-    Microsoft,
-    Github
+    Google = "google",
+    Microsoft = "microsoft",
+    Github = "github"
 }

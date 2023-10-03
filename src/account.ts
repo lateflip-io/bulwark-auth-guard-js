@@ -1,6 +1,7 @@
 import {BulwarkError} from "./errors/bulwarkError.ts";
 import { JsonError } from "./types/jsonError.ts";
 import { makePost, makePut, makeGet } from "./httpRequest.ts";
+import { AccessToken } from "./types/accessToken.ts";
 
 export class Account{
     private baseUrl: string;
@@ -8,8 +9,8 @@ export class Account{
         this.baseUrl = baseUrl;
     }
 
-    public async create(email: string, password: string){
-        const response = await makePost(this.baseUrl + '/accounts/create',{
+    public async create(email: string, password: string): Promise<void>{
+        const response = await makePost(`${this.baseUrl}/accounts/create`,{
             email: email,
             password: password
         });
@@ -20,8 +21,8 @@ export class Account{
         }
     }
 
-    public async verify(email: string, verificationToken: string){
-        const response = await makePost(this.baseUrl + '/accounts/verify',{
+    public async verify(email: string, verificationToken: string): Promise<void>{
+        const response = await makePost(`${this.baseUrl}/accounts/verify`,{
             email: email,
             token: verificationToken
         });
@@ -32,8 +33,8 @@ export class Account{
         }
     }
 
-    public async forgetRequest(email: string){
-        const response = await makeGet(this.baseUrl + '/accounts/forgot/' + email);
+    public async forgetRequest(email: string): Promise<void>{
+        const response = await makeGet(`${this.baseUrl}/accounts/forgot/${email}`);
 
         if (!response.ok) {
             let error : JsonError = await response.json();
@@ -41,8 +42,8 @@ export class Account{
         }
     }
 
-    public async forgotPassword(email : string, newPassword: string, forgotToken: string){
-        const response = await makePut(this.baseUrl + '/accounts/forgot', {
+    public async forgotPassword(email : string, newPassword: string, forgotToken: string): Promise<void>{
+        const response = await makePut(`${this.baseUrl}/accounts/forgot`, {
             email: email,
             password: newPassword,
             token: forgotToken
@@ -54,8 +55,8 @@ export class Account{
         }
     }
 
-    public async delete(email: string, accessToken: string){
-        const response = await makePut(this.baseUrl + '/accounts/delete', {
+    public async delete(email: string, accessToken: string): Promise<void>{
+        const response = await makePut(`${this.baseUrl}/accounts/delete`, {
             email: email,
             accessToken: accessToken
         });
@@ -66,8 +67,8 @@ export class Account{
         }
     }
 
-    public async changePassword(email: string, newPassword: string, accessToken: string){
-        const response = await makePut(this.baseUrl + '/accounts/password', {
+    public async changePassword(email: string, newPassword: string, accessToken: string): Promise<void>{
+        const response = await makePut(`${this.baseUrl}/accounts/password`, {
             email: email,
             newPassword: newPassword,
             accessToken: accessToken
@@ -79,8 +80,8 @@ export class Account{
         }
     }
 
-    public async changeEmail(email: string, newEmail: string, accessToken: string){
-        const response = await makePut(this.baseUrl + '/accounts/email', {
+    public async changeEmail(email: string, newEmail: string, accessToken: string): Promise<void>{
+        const response = await makePut(`${this.baseUrl}/accounts/email`, {
             email: email,
             newEmail: newEmail,
             accessToken: accessToken
@@ -90,5 +91,13 @@ export class Account{
             let error : JsonError = await response.json();
             throw new BulwarkError(error.title);
         }
+    }
+
+    public inRole(role: string, accessToken: AccessToken): boolean {
+        return accessToken.roles.includes(role);
+    }
+
+    public hasPermission(permission: string, accessToken: AccessToken): boolean {
+        return accessToken.permissions.includes(permission);
     }
 }
