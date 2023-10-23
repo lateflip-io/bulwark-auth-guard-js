@@ -67,3 +67,27 @@ test("authenticate google token", async () => {
         expect(error.message).toBe("Could not authenticate social account");
     }
 });
+
+test("get token validation keys", async() => {
+    await guard.authenticate.initializeLocalKeyValidation();
+    const keys = await guard.authenticate.listKeys();
+    expect(keys).not.toBeNull();
+    expect(keys.keys).not.toBeNull();
+    expect(keys.size).toBeGreaterThan(0);
+    await guard.account.create(testEmail, testPassword);
+    let results = await mailhog.messages();
+    let mail = null;
+    for(let message of results?.items){
+        if(message.to === testEmail){
+            mail = message;
+            break;
+        }
+    }
+    expect(mail).not.toBeNull();
+    await guard.account.verify(testEmail, mail?.subject);
+    mailhog.deleteMessage(mail.ID);
+    const accessToken = (await guard.authenticate.password(testEmail, testPassword)).accessToken;
+
+    const validated = await guard.authenticate.validateAccessTokenClientSide(accessToken);
+    expect(validated).not.toBeNull();
+});

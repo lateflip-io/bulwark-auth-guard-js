@@ -1,13 +1,14 @@
 services:
-  bulwark.auth:
-    image: "lateflip/bulwark.auth:1.0.0-beta.13"
-    env_file:
-      - .env
-    ports:
-      - 8080:80
-    depends_on:
-      - mongodb
-      - mailhog
+  # ATM the bulwark auth docker container is not compitible with apple silicion 
+  # bulwark.auth:
+  #   image: "lateflip/bulwark.auth:1.0.0-beta.13" 
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 8080:80
+  #   depends_on:
+  #     - mongodb
+  #     - mailhog
   mongodb:
     image: "mongo:latest"
     ports:

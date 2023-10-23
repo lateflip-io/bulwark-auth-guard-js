@@ -4,9 +4,12 @@ import { SocialProvider } from "./socialProvider";
 import { AccessToken } from "./types/accessToken";
 import { Authenticated } from "./types/authenticated";
 import { JsonError } from "./types/jsonError";
+import { Key } from "./types/key";
+import jwt from "jsonwebtoken";
 
 export class Authenticate {
     private baseUrl: string;
+    private keys: Map<string, Key> = new Map<string, Key>();
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
@@ -20,11 +23,11 @@ export class Authenticate {
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
 
-        const auth : Authenticated = await response.json();
+        const auth : Authenticated = await response.json() as Authenticated;
         return auth;
     }
 
@@ -35,11 +38,11 @@ export class Authenticate {
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
 
-        const auth : Authenticated = await response.json();
+        const auth : Authenticated = await response.json() as Authenticated;
         return auth;
     }
 
@@ -47,7 +50,7 @@ export class Authenticate {
         const response = await makeGet(`${this.baseUrl}/passwordless/magic/request/${email}`);
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -62,7 +65,7 @@ export class Authenticate {
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -75,11 +78,11 @@ export class Authenticate {
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
 
-        const accessTokenInfo = response.json();
+        const accessTokenInfo: AccessToken = await response.json() as AccessToken;
         return accessTokenInfo;
     }
 
@@ -91,11 +94,11 @@ export class Authenticate {
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
 
-        let authenticated = response.json();
+        let authenticated: Authenticated = await response.json() as Authenticated;
         return authenticated;
     }
 
@@ -107,7 +110,7 @@ export class Authenticate {
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -120,11 +123,41 @@ export class Authenticate {
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
 
-        let authenticated = response.json();
+        let authenticated = await response.json() as Authenticated;
         return authenticated;
+    }
+
+    async initializeLocalKeyValidation(){
+        const response = await makeGet(`${this.baseUrl}/keys`);
+
+        if (!response.ok) {
+            let error : JsonError = await response.json() as JsonError;
+            throw new BulwarkError(error.title);
+        }
+
+        const keys: Key[] = await response.json() as Key[];
+
+        for(let key of keys){
+            this.keys.set(key.keyId, key);
+        } 
+    }
+
+    async listKeys(): Promise<Map<string, Key>>{
+        return this.keys;
+    }
+
+    async validateAccessTokenClientSide(accessToken: string): Promise<AccessToken>{
+        const decodedToken = jwt.decode(accessToken, {complete: true}) as any;
+        const key: Key = this.keys.get(decodedToken.header.kid) as Key;
+        const validated = jwt.verify(accessToken, key.publicKey) as AccessToken;
+        if(validated){
+            return validated as AccessToken;
+        }
+
+        throw new BulwarkError("Could not validate access token");
     }
 }
