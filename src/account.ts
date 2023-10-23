@@ -16,7 +16,7 @@ export class Account{
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -28,7 +28,7 @@ export class Account{
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -37,7 +37,7 @@ export class Account{
         const response = await makeGet(`${this.baseUrl}/accounts/forgot/${email}`);
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -50,7 +50,7 @@ export class Account{
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -62,7 +62,7 @@ export class Account{
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -75,7 +75,7 @@ export class Account{
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
@@ -88,7 +88,7 @@ export class Account{
         });
 
         if (!response.ok) {
-            let error : JsonError = await response.json();
+            let error : JsonError = await response.json() as JsonError;
             throw new BulwarkError(error.title);
         }
     }
