@@ -7,6 +7,7 @@ import { JsonError } from "./types/jsonError";
 import { Key } from "./types/key";
 import jwt from "jsonwebtoken";
 
+
 export class Authenticate {
     private baseUrl: string;
     private keys: Map<string, Key> = new Map<string, Key>();

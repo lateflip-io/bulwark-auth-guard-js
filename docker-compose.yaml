@@ -1,5 +1,5 @@
 services:
-  # ATM the bulwark auth docker container is not compitible with apple silicion 
+  # ATM the bulwark auth docker container is not compitible with apple silicion (arm linux)
   # bulwark.auth:
   #   image: "lateflip/bulwark.auth:1.0.0-beta.13" 
   #   env_file:
@@ -10,9 +10,18 @@ services:
   #     - mongodb
   #     - mailhog
   mongodb:
-    image: "mongo:latest"
+    image: mongo:7
+    container_name: mongodb
     ports:
-      - 27017:27017
+      - '27017:27017'
+    command: mongod --replSet rs0
+    healthcheck:
+      test: |
+        mongosh --eval "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }"
+      start_period: 0s
+      interval: 500ms
+      timeout: 5s
+      retries: 5
   mailhog:
     image: "mailhog/mailhog:latest"
     ports:

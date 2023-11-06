@@ -2,6 +2,9 @@
   "name": "bulwark-auth-guard-js",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "build": "npx tsc"
+  },
   "devDependencies": {
     "bun-types": "latest",
     "mailhog": "^4.16.0",
